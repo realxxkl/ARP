@@ -20,9 +20,12 @@
     renderer="colorManagement: true; physicallyCorrectLights: true;"
   >
 
-    <!-- ✅ a-assets must be a direct child of a-scene -->
-    <a-assets>
-      <a-asset-item id="pyramidModel" src="full.glb"></a-asset-item>
+    <!-- ✅ a-assets is now correctly a direct child of a-scene -->
+    <a-assets timeout="60000">
+      <a-asset-item id="pyramidModel" 
+        src="https://pub-d9b652f6ddbe4044a30f53bdad7edf85.r2.dev/full.glb"
+        crossorigin="anonymous">
+      </a-asset-item>
     </a-assets>
 
     <a-camera position="0 0 0"></a-camera>
