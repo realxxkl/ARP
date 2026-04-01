@@ -3,19 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Pyramid AR</title>
-
-  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-
-  <!-- MindAR -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- Info Box -->
   <div id="infoBox">
     <p id="infoText">Tap a point on the pyramid</p>
   </div>
@@ -27,15 +20,14 @@
     renderer="colorManagement: true; physicallyCorrectLights: true;"
   >
 
+    <!-- ✅ a-assets must be a direct child of a-scene -->
+    <a-assets>
+      <a-asset-item id="pyramidModel" src="full.glb"></a-asset-item>
+    </a-assets>
+
     <a-camera position="0 0 0"></a-camera>
 
-    <!-- AR Target -->
     <a-entity mindar-image-target="targetIndex: 0">
-
-      <!-- GLB MODEL (MAIN FIXED VERSION) -->
-      <a-assets>
-        <a-asset-item id="pyramidModel" src="full.glb"></a-asset-item>
-      </a-assets>
 
       <a-entity 
         gltf-model="#pyramidModel"
@@ -45,7 +37,6 @@
         animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
       </a-entity>
 
-      <!-- Hotspots -->
       <a-sphere position="0 1 0" radius="0.1" color="red"
         onclick="showInfo('Top: The pyramid once had a golden capstone.')">
       </a-sphere>
@@ -63,6 +54,5 @@
   </a-scene>
 
   <script src="script.js"></script>
-
 </body>
 </html>
