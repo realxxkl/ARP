@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Pyramid AR</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+
+  <!-- MindAR -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Info Panel -->
+  <div id="infoBox">
+    <p id="infoText">Tap a point on the pyramid</p>
+  </div>
+
+  <a-scene
+    mindar-image="imageTargetSrc: targets.mind;"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: true"
+  >
+
+    <a-camera position="0 0 0"></a-camera>
+
+    <!-- AR Target -->
+    <a-entity mindar-image-target="targetIndex: 0">
+
+      <!-- Pyramid Model -->
+      <a-entity 
+        gltf-model="full.glb"
+        scale="0.3 0.3 0.3"
+        position="0 0 0"
+        rotation="0 0 0">
+      </a-entity>
+
+      <!-- HOTSPOTS -->
+
+      <!-- Top -->
+      <a-sphere position="0 1 0" radius="0.1" color="red"
+        onclick="showInfo('Top: The pyramid once had a gold capstone called a pyramidion.')">
+      </a-sphere>
+
+      <!-- Center -->
+      <a-sphere position="0 0.5 0.3" radius="0.1" color="blue"
+        onclick="showInfo('Center: Built for Pharaoh Khufu around 2560 BCE.')">
+      </a-sphere>
+
+      <!-- Base -->
+      <a-sphere position="0 0 0" radius="0.1" color="green"
+        onclick="showInfo('Base: Made of over 2.3 million limestone blocks.')">
+      </a-sphere>
+
+    </a-entity>
+
+  </a-scene>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
