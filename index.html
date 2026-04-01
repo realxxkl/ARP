@@ -15,7 +15,7 @@
 
 <body>
 
-  <!-- Info Panel -->
+  <!-- Info Box -->
   <div id="infoBox">
     <p id="infoText">Tap a point on the pyramid</p>
   </div>
@@ -24,6 +24,7 @@
     mindar-image="imageTargetSrc: targets.mind;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: true"
+    renderer="colorManagement: true; physicallyCorrectLights: true;"
   >
 
     <a-camera position="0 0 0"></a-camera>
@@ -31,29 +32,30 @@
     <!-- AR Target -->
     <a-entity mindar-image-target="targetIndex: 0">
 
-      <!-- Pyramid Model -->
+      <!-- GLB MODEL (MAIN FIXED VERSION) -->
+      <a-assets>
+        <a-asset-item id="pyramidModel" src="full.glb"></a-asset-item>
+      </a-assets>
+
       <a-entity 
-        gltf-model="full.glb"
+        gltf-model="#pyramidModel"
         scale="0.3 0.3 0.3"
         position="0 0 0"
-        rotation="0 0 0">
+        rotation="0 0 0"
+        animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
       </a-entity>
 
-      <!-- HOTSPOTS -->
-
-      <!-- Top -->
+      <!-- Hotspots -->
       <a-sphere position="0 1 0" radius="0.1" color="red"
-        onclick="showInfo('Top: The pyramid once had a gold capstone called a pyramidion.')">
+        onclick="showInfo('Top: The pyramid once had a golden capstone.')">
       </a-sphere>
 
-      <!-- Center -->
       <a-sphere position="0 0.5 0.3" radius="0.1" color="blue"
-        onclick="showInfo('Center: Built for Pharaoh Khufu around 2560 BCE.')">
+        onclick="showInfo('Built for Pharaoh Khufu around 2560 BCE.')">
       </a-sphere>
 
-      <!-- Base -->
       <a-sphere position="0 0 0" radius="0.1" color="green"
-        onclick="showInfo('Base: Made of over 2.3 million limestone blocks.')">
+        onclick="showInfo('Made of over 2.3 million limestone blocks.')">
       </a-sphere>
 
     </a-entity>
