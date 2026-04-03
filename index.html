@@ -6,11 +6,88 @@
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
   <link rel="stylesheet" href="style.css">
+  <style>
+    #editorPanel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.85);
+      color: white;
+      padding: 12px;
+      z-index: 9999;
+      display: none;
+      max-height: 70vh;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    #editorPanel label { font-size: 12px; display: block; margin-top: 8px; }
+    #editorPanel input[type=range] { width: 100%; }
+    #editorPanel pre {
+      background: rgba(255,255,255,0.1);
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      white-space: pre-wrap;
+      margin: 8px 0;
+    }
+    #editorPanel button {
+      background: white;
+      color: black;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin: 4px 4px 0 0;
+      cursor: pointer;
+    }
+    #toggleEditor {
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 50px;
+      font-size: 13px;
+      z-index: 9999;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
 
   <div id="infoBox">
     <p id="infoText">Tap a point on the pyramid</p>
+  </div>
+
+  <!-- Toggle button -->
+  <button id="toggleEditor" onclick="togglePanel()">Edit Position</button>
+
+  <!-- Editor Panel -->
+  <div id="editorPanel">
+    <label>Scale: <span id="scaleVal">0.005</span></label>
+    <input type="range" min="1" max="50" value="5" id="scaleSlider" oninput="updateModel()">
+
+    <label>Position X (left/right): <span id="pxVal">0</span></label>
+    <input type="range" min="-20" max="20" value="0" id="pxSlider" oninput="updateModel()">
+
+    <label>Position Y (up/down): <span id="pyVal">0</span></label>
+    <input type="range" min="-20" max="20" value="0" id="pySlider" oninput="updateModel()">
+
+    <label>Position Z (forward/back): <span id="pzVal">-0.1</span></label>
+    <input type="range" min="-20" max="20" value="-1" id="pzSlider" oninput="updateModel()">
+
+    <label>Rotation X (tilt): <span id="rxVal">90</span></label>
+    <input type="range" min="-180" max="180" value="90" id="rxSlider" oninput="updateModel()">
+
+    <label>Rotation Y (spin): <span id="ryVal">0</span></label>
+    <input type="range" min="-180" max="180" value="0" id="rySlider" oninput="updateModel()">
+
+    <pre id="codeOutput"></pre>
+    <button onclick="copyCode()">Copy Code</button>
+    <button onclick="togglePanel()">Close</button>
   </div>
 
   <a-scene
@@ -21,7 +98,7 @@
   >
 
     <a-assets timeout="60000">
-      <a-asset-item id="pyramidModel" 
+      <a-asset-item id="pyramidModel"
         src="https://pub-d9b652f6ddbe4044a30f53bdad7edf85.r2.dev/full.glb"
         crossorigin="anonymous">
       </a-asset-item>
@@ -31,7 +108,8 @@
 
     <a-entity mindar-image-target="targetIndex: 0">
 
-      <a-entity 
+      <a-entity
+        id="pyramidEntity"
         gltf-model="#pyramidModel"
         scale="0.005 0.005 0.005"
         position="0 0 -0.1"
@@ -41,11 +119,9 @@
       <a-sphere position="0 0.2 0" radius="0.05" color="red"
         onclick="showInfo('Top: The pyramid once had a golden capstone.')">
       </a-sphere>
-
       <a-sphere position="0.1 0.1 0" radius="0.05" color="blue"
         onclick="showInfo('Built for Pharaoh Khufu around 2560 BCE.')">
       </a-sphere>
-
       <a-sphere position="-0.1 0.1 0" radius="0.05" color="green"
         onclick="showInfo('Made of over 2.3 million limestone blocks.')">
       </a-sphere>
@@ -55,5 +131,42 @@
   </a-scene>
 
   <script src="script.js"></script>
+  <script>
+    function togglePanel() {
+      const p = document.getElementById('editorPanel');
+      p.style.display = p.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function updateModel() {
+      const scale = (document.getElementById('scaleSlider').value / 1000).toFixed(3);
+      const px = (document.getElementById('pxSlider').value / 10).toFixed(1);
+      const py = (document.getElementById('pySlider').value / 10).toFixed(1);
+      const pz = (document.getElementById('pzSlider').value / 10).toFixed(1);
+      const rx = document.getElementById('rxSlider').value;
+      const ry = document.getElementById('rySlider').value;
+
+      document.getElementById('scaleVal').textContent = scale;
+      document.getElementById('pxVal').textContent = px;
+      document.getElementById('pyVal').textContent = py;
+      document.getElementById('pzVal').textContent = pz;
+      document.getElementById('rxVal').textContent = rx;
+      document.getElementById('ryVal').textContent = ry;
+
+      const el = document.getElementById('pyramidEntity');
+      if (el) {
+        el.setAttribute('scale', `${scale} ${scale} ${scale}`);
+        el.setAttribute('position', `${px} ${py} ${pz}`);
+        el.setAttribute('rotation', `${rx} ${ry} 0`);
+      }
+
+      document.getElementById('codeOutput').textContent =
+        `scale="${scale} ${scale} ${scale}"\nposition="${px} ${py} ${pz}"\nrotation="${rx} ${ry} 0"`;
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(document.getElementById('codeOutput').textContent);
+      alert('Copied!');
+    }
+  </script>
 </body>
 </html>
