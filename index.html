@@ -1,172 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Pyramid AR</title>
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    #editorPanel {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(0,0,0,0.85);
-      color: white;
-      padding: 12px;
-      z-index: 9999;
-      display: none;
-      max-height: 70vh;
-      overflow-y: auto;
-      box-sizing: border-box;
-    }
-    #editorPanel label { font-size: 12px; display: block; margin-top: 8px; }
-    #editorPanel input[type=range] { width: 100%; }
-    #editorPanel pre {
-      background: rgba(255,255,255,0.1);
-      padding: 8px;
-      border-radius: 8px;
-      font-size: 11px;
-      white-space: pre-wrap;
-      margin: 8px 0;
-    }
-    #editorPanel button {
-      background: white;
-      color: black;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin: 4px 4px 0 0;
-      cursor: pointer;
-    }
-    #toggleEditor {
-      position: fixed;
-      bottom: 80px;
-      right: 16px;
-      background: rgba(0,0,0,0.7);
-      color: white;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 50px;
-      font-size: 13px;
-      z-index: 9999;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div id="infoBox">
-    <p id="infoText">Tap a point on the pyramid</p>
+  <!-- UI Overlay -->
+  <div id="ui-overlay">
+
+    <div id="header">
+      <span id="logo">&#9651; PYRAMID AR</span>
+      <span id="status-badge" class="badge scanning">Scanning…</span>
+    </div>
+
+    <div id="hint-box">
+      <div id="hint-icon">&#8635;</div>
+      <p id="hint-text">Move your camera slowly to detect a flat surface</p>
+    </div>
+
+    <div id="info-card" class="hidden">
+      <button id="info-close" onclick="closeInfo()">&#x2715;</button>
+      <h2 id="info-title"></h2>
+      <p id="info-body"></p>
+    </div>
+
+    <div id="controls">
+      <button class="ctrl-btn" id="btn-place" onclick="placePyramid()" disabled>
+        <span>&#9651;</span> Place Pyramid
+      </button>
+      <button class="ctrl-btn secondary" id="btn-reset" onclick="resetPyramid()" disabled>
+        <span>&#8635;</span> Reset
+      </button>
+    </div>
+
   </div>
 
-  <!-- Toggle button -->
-  <button id="toggleEditor" onclick="togglePanel()">Edit Position</button>
-
-  <!-- Editor Panel -->
-  <div id="editorPanel">
-    <label>Scale: <span id="scaleVal">0.005</span></label>
-    <input type="range" min="1" max="50" value="5" id="scaleSlider" oninput="updateModel()">
-
-    <label>Position X (left/right): <span id="pxVal">0</span></label>
-    <input type="range" min="-20" max="20" value="0" id="pxSlider" oninput="updateModel()">
-
-    <label>Position Y (up/down): <span id="pyVal">0</span></label>
-    <input type="range" min="-20" max="20" value="0" id="pySlider" oninput="updateModel()">
-
-    <label>Position Z (forward/back): <span id="pzVal">-0.1</span></label>
-    <input type="range" min="-20" max="20" value="-1" id="pzSlider" oninput="updateModel()">
-
-    <label>Rotation X (tilt): <span id="rxVal">90</span></label>
-    <input type="range" min="-180" max="180" value="90" id="rxSlider" oninput="updateModel()">
-
-    <label>Rotation Y (spin): <span id="ryVal">0</span></label>
-    <input type="range" min="-180" max="180" value="0" id="rySlider" oninput="updateModel()">
-
-    <pre id="codeOutput"></pre>
-    <button onclick="copyCode()">Copy Code</button>
-    <button onclick="togglePanel()">Close</button>
-  </div>
-
+  <!-- A-Frame Scene -->
   <a-scene
-    mindar-image="imageTargetSrc: targets.mind;"
+    id="ar-scene"
+    webxr="requiredFeatures: hit-test; optionalFeatures: dom-overlay, local-floor; overlayElement: #ui-overlay;"
+    renderer="colorManagement: true; physicallyCorrectLights: true; alpha: true;"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: true"
-    renderer="colorManagement: true; physicallyCorrectLights: true;"
+    background="transparent: true"
+    ar-hit-test="target: #reticle; type: footprint; footprintDepth: 0.1"
   >
 
     <a-assets timeout="60000">
-      <a-asset-item id="pyramidModel"
-        src="https://pub-d9b652f6ddbe4044a30f53bdad7edf85.r2.dev/full.glb"
-        crossorigin="anonymous">
-      </a-asset-item>
+      <a-asset-item id="pyramidModel" src="full.glb" crossorigin="anonymous"></a-asset-item>
     </a-assets>
 
-    <a-camera position="0 0 0"></a-camera>
+    <!-- Lighting -->
+    <a-light type="ambient" color="#ffffff" intensity="0.6"></a-light>
+    <a-light type="directional" color="#ffe0a0" intensity="1.2" position="1 3 2"></a-light>
+    <a-light type="directional" color="#a0c8ff" intensity="0.4" position="-2 1 -1"></a-light>
 
-    <a-entity mindar-image-target="targetIndex: 0">
+    <!-- Reticle (surface indicator) -->
+    <a-entity id="reticle" visible="false">
+      <a-ring
+        color="#FFD700"
+        radius-inner="0.06"
+        radius-outer="0.10"
+        rotation="-90 0 0"
+        material="shader: flat; opacity: 0.85"
+        animation="property: rotation; to: -90 360 0; loop: true; dur: 2000; easing: linear">
+      </a-ring>
+      <a-ring
+        color="#ffffff"
+        radius-inner="0.03"
+        radius-outer="0.05"
+        rotation="-90 0 0"
+        material="shader: flat; opacity: 0.4">
+      </a-ring>
+    </a-entity>
 
+    <!-- Pyramid entity (placed on tap) -->
+    <a-entity id="pyramid-root" visible="false">
+
+      <!-- The GLB model -->
       <a-entity
         id="pyramidEntity"
         gltf-model="#pyramidModel"
-        scale="0.008 0.008 0.008"
-        position="-0.9 -0.8 -0.3"
-        rotation="70 10 0">
+        scale="0.005 0.005 0.005"
+        position="0 0 0"
+        rotation="0 0 0"
+        animation__appear="property: scale; from: 0 0 0; to: 0.005 0.005 0.005; dur: 600; easing: easeOutBack; startEvents: appear">
       </a-entity>
 
-      <a-sphere position="0 0.2 0" radius="0.05" color="red"
-        onclick="showInfo('Top: The pyramid once had a golden capstone.')">
-      </a-sphere>
-      <a-sphere position="0.1 0.1 0" radius="0.05" color="blue"
-        onclick="showInfo('Built for Pharaoh Khufu around 2560 BCE.')">
-      </a-sphere>
-      <a-sphere position="-0.1 0.1 0" radius="0.05" color="green"
-        onclick="showInfo('Made of over 2.3 million limestone blocks.')">
-      </a-sphere>
+      <!-- Info hotspots -->
+      <a-entity id="hotspots">
 
+        <!-- Top hotspot -->
+        <a-entity
+          class="hotspot"
+          position="0 0.25 0"
+          data-title="The Golden Capstone"
+          data-body="The apex of the Great Pyramid was once capped with electrum — an alloy of gold and silver — that reflected sunlight across the Nile valley."
+          onclick="showInfo(this)">
+          <a-sphere radius="0.035" color="#FFD700" material="shader: flat; opacity: 0.9"
+            animation__pulse="property: scale; to: 1.3 1.3 1.3; dir: alternate; loop: true; dur: 900; easing: easeInOutSine">
+          </a-sphere>
+          <a-ring radius-inner="0.04" radius-outer="0.055" color="#FFD700"
+            rotation="-90 0 0" material="shader: flat; opacity: 0.4"
+            animation__spin="property: rotation; to: -90 360 0; loop: true; dur: 3000; easing: linear">
+          </a-ring>
+        </a-entity>
+
+        <!-- Side hotspot 1 -->
+        <a-entity
+          class="hotspot"
+          position="0.15 0.1 0"
+          data-title="Built for Khufu"
+          data-body="Constructed around 2560 BCE for Pharaoh Khufu, the Great Pyramid stood as the tallest man-made structure on Earth for over 3,800 years."
+          onclick="showInfo(this)">
+          <a-sphere radius="0.035" color="#4FC3F7" material="shader: flat; opacity: 0.9"
+            animation__pulse="property: scale; to: 1.3 1.3 1.3; dir: alternate; loop: true; dur: 1100; easing: easeInOutSine">
+          </a-sphere>
+          <a-ring radius-inner="0.04" radius-outer="0.055" color="#4FC3F7"
+            rotation="-90 0 0" material="shader: flat; opacity: 0.4"
+            animation__spin="property: rotation; to: -90 360 0; loop: true; dur: 3500; easing: linear">
+          </a-ring>
+        </a-entity>
+
+        <!-- Side hotspot 2 -->
+        <a-entity
+          class="hotspot"
+          position="-0.15 0.1 0"
+          data-title="2.3 Million Blocks"
+          data-body="The pyramid contains an estimated 2.3 million limestone and granite blocks, each weighing between 2.5 and 80 tonnes."
+          onclick="showInfo(this)">
+          <a-sphere radius="0.035" color="#81C784" material="shader: flat; opacity: 0.9"
+            animation__pulse="property: scale; to: 1.3 1.3 1.3; dir: alternate; loop: true; dur: 1300; easing: easeInOutSine">
+          </a-sphere>
+          <a-ring radius-inner="0.04" radius-outer="0.055" color="#81C784"
+            rotation="-90 0 0" material="shader: flat; opacity: 0.4"
+            animation__spin="property: rotation; to: -90 360 0; loop: true; dur: 2800; easing: linear">
+          </a-ring>
+        </a-entity>
+
+        <!-- Front hotspot -->
+        <a-entity
+          class="hotspot"
+          position="0 0.05 0.18"
+          data-title="The Grand Gallery"
+          data-body="Inside lies the Grand Gallery — a soaring corbelled passageway 8.7 metres tall, leading to the King's Chamber with absolute precision."
+          onclick="showInfo(this)">
+          <a-sphere radius="0.035" color="#CE93D8" material="shader: flat; opacity: 0.9"
+            animation__pulse="property: scale; to: 1.3 1.3 1.3; dir: alternate; loop: true; dur: 1000; easing: easeInOutSine">
+          </a-sphere>
+          <a-ring radius-inner="0.04" radius-outer="0.055" color="#CE93D8"
+            rotation="-90 0 0" material="shader: flat; opacity: 0.4"
+            animation__spin="property: rotation; to: -90 360 0; loop: true; dur: 3200; easing: linear">
+          </a-ring>
+        </a-entity>
+
+      </a-entity>
     </a-entity>
+
+    <a-camera position="0 0 0"></a-camera>
 
   </a-scene>
 
   <script src="script.js"></script>
-  <script>
-    function togglePanel() {
-      const p = document.getElementById('editorPanel');
-      p.style.display = p.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function updateModel() {
-      const scale = (document.getElementById('scaleSlider').value / 1000).toFixed(3);
-      const px = (document.getElementById('pxSlider').value / 10).toFixed(1);
-      const py = (document.getElementById('pySlider').value / 10).toFixed(1);
-      const pz = (document.getElementById('pzSlider').value / 10).toFixed(1);
-      const rx = document.getElementById('rxSlider').value;
-      const ry = document.getElementById('rySlider').value;
-
-      document.getElementById('scaleVal').textContent = scale;
-      document.getElementById('pxVal').textContent = px;
-      document.getElementById('pyVal').textContent = py;
-      document.getElementById('pzVal').textContent = pz;
-      document.getElementById('rxVal').textContent = rx;
-      document.getElementById('ryVal').textContent = ry;
-
-      const el = document.getElementById('pyramidEntity');
-      if (el) {
-        el.setAttribute('scale', `${scale} ${scale} ${scale}`);
-        el.setAttribute('position', `${px} ${py} ${pz}`);
-        el.setAttribute('rotation', `${rx} ${ry} 0`);
-      }
-
-      document.getElementById('codeOutput').textContent =
-        `scale="${scale} ${scale} ${scale}"\nposition="${px} ${py} ${pz}"\nrotation="${rx} ${ry} 0"`;
-    }
-
-    function copyCode() {
-      navigator.clipboard.writeText(document.getElementById('codeOutput').textContent);
-      alert('Copied!');
-    }
-  </script>
 </body>
 </html>
