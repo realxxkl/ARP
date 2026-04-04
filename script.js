@@ -1,117 +1,70 @@
-// ─── State ───────────────────────────────────────────────────────────────────
-let pyramidPlaced = false;
-let reticleVisible = false;
-let sceneEl, reticleEl, pyramidRootEl, pyramidEntityEl;
+// ─── Freeze Fix ───────────────────────────────────────────────────────────────
+// MindAR hides the target entity when the image is lost.
+// We override that behaviour to keep the model frozen at its last position.
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  sceneEl       = document.getElementById('ar-scene');
-  reticleEl     = document.getElementById('reticle');
-  pyramidRootEl = document.getElementById('pyramid-root');
-  pyramidEntityEl = document.getElementById('pyramidEntity');
 
-  // Wait for A-Frame + WebXR to be ready
-  sceneEl.addEventListener('enter-vr', onARStart);
-  sceneEl.addEventListener('exit-vr',  onAREnd);
+  const sceneEl   = document.getElementById('ar-scene');
+  const targetEl  = document.getElementById('target-entity');
+  const modelEl   = document.getElementById('pyramidEntity');
+  const badge     = document.getElementById('status-badge');
+  const hintText  = document.getElementById('hint-text');
 
-  // Hit-test surface detection → show reticle + enable Place button
-  sceneEl.addEventListener('ar-hit-test-achieved', onHitTestAchieved);
+  let targetFound = false;
 
-  // Model load events
-  pyramidEntityEl.addEventListener('model-loaded', () => {
+  // ── Wait for MindAR to be ready ──────────────────────────────────────────────
+  sceneEl.addEventListener('arReady', () => {
+    setBadge('scanning');
+    setHint('Point your camera at the target image');
+    console.log('✅ MindAR ready');
+  });
+
+  sceneEl.addEventListener('arError', (e) => {
+    setBadge('error');
+    setHint('Camera error. Please allow camera access and reload.');
+    console.error('❌ MindAR error', e);
+  });
+
+  // ── Target found ─────────────────────────────────────────────────────────────
+  targetEl.addEventListener('targetFound', () => {
+    targetFound = true;
+    targetEl.setAttribute('visible', true);
+    setBadge('found');
+    setHint('Tap the coloured dots to explore the pyramid');
+    console.log('🎯 Target found');
+  });
+
+  // ── Target lost — FREEZE: keep entity visible, don't hide it ─────────────────
+  targetEl.addEventListener('targetLost', () => {
+    // Do NOT hide the entity — leave it frozen at last known position
+    // MindAR internally tries to set visible=false; we override it immediately
+    setTimeout(() => {
+      if (targetFound) {
+        targetEl.setAttribute('visible', true);
+      }
+    }, 0);
+
+    setBadge('frozen');
+    setHint('Target lost — model frozen in place. Re-point to re-lock.');
+    console.log('❄️ Target lost — model frozen');
+  });
+
+  // ── Model load events ─────────────────────────────────────────────────────────
+  modelEl.addEventListener('model-loaded', () => {
     console.log('✅ GLB loaded successfully');
   });
-  pyramidEntityEl.addEventListener('model-error', (e) => {
+
+  modelEl.addEventListener('model-error', (e) => {
     console.error('❌ GLB failed to load', e);
-    setHint('Failed to load 3D model. Check your file path.');
+    setHint('3D model failed to load. Check your network and file path.');
   });
 
-  // Tap to place
-  document.addEventListener('click', onScreenTap);
-  document.addEventListener('touchend', onScreenTap);
+  // ── Add cursor / raycaster to camera for hotspot clicks on mobile ─────────────
+  const cameraEl = document.querySelector('a-camera');
+  cameraEl.setAttribute('raycaster', 'objects: .hotspot; far: 10;');
+  cameraEl.setAttribute('cursor', 'fuse: false; rayOrigin: mouse;');
+
 });
-
-// ─── AR Session Events ────────────────────────────────────────────────────────
-function onARStart() {
-  setBadge('scanning');
-  setHint('Move your camera slowly to detect a flat surface');
-}
-
-function onAREnd() {
-  setBadge('offline');
-  setHint('AR session ended. Re-open in a WebXR-compatible browser.');
-}
-
-// ─── Hit-Test → Surface Found ─────────────────────────────────────────────────
-function onHitTestAchieved(evt) {
-  if (pyramidPlaced) return; // once placed, ignore further reticle updates
-
-  reticleEl.setAttribute('visible', true);
-  reticleVisible = true;
-
-  // Position reticle at detected surface
-  const position = evt.detail.position;
-  const rotation = evt.detail.rotation;
-  if (position) reticleEl.setAttribute('position', position);
-  if (rotation) reticleEl.setAttribute('rotation', rotation);
-
-  // Enable the Place button
-  const btnPlace = document.getElementById('btn-place');
-  btnPlace.disabled = false;
-
-  setBadge('ready');
-  setHint('Surface detected! Tap anywhere or press Place Pyramid');
-}
-
-// ─── Tap / Click → Place ──────────────────────────────────────────────────────
-function onScreenTap(evt) {
-  // Ignore taps on UI elements
-  if (evt.target.closest('#ui-overlay')) return;
-  if (!reticleVisible || pyramidPlaced) return;
-
-  placePyramid();
-}
-
-// ─── Place Pyramid ────────────────────────────────────────────────────────────
-function placePyramid() {
-  if (pyramidPlaced) return;
-
-  const reticlePos = reticleEl.getAttribute('position');
-  if (!reticlePos) return;
-
-  // Move pyramid root to reticle position
-  pyramidRootEl.setAttribute('position', reticlePos);
-  pyramidRootEl.setAttribute('visible', true);
-
-  // Trigger appear animation
-  pyramidEntityEl.emit('appear');
-
-  // Hide reticle
-  reticleEl.setAttribute('visible', false);
-  reticleVisible = false;
-  pyramidPlaced = true;
-
-  // Update UI
-  setBadge('placed');
-  setHint('Tap the coloured dots to explore the pyramid');
-  document.getElementById('btn-place').disabled = true;
-  document.getElementById('btn-reset').disabled = false;
-}
-
-// ─── Reset ────────────────────────────────────────────────────────────────────
-function resetPyramid() {
-  pyramidRootEl.setAttribute('visible', false);
-  pyramidPlaced = false;
-
-  // Reset scale for re-animation next time
-  pyramidEntityEl.setAttribute('scale', '0 0 0');
-
-  setBadge('scanning');
-  setHint('Move your camera slowly to detect a flat surface');
-  document.getElementById('btn-place').disabled = true;
-  document.getElementById('btn-reset').disabled = true;
-  closeInfo();
-}
 
 // ─── Info Card ────────────────────────────────────────────────────────────────
 function showInfo(entityEl) {
@@ -132,6 +85,45 @@ function closeInfo() {
   card.classList.add('hidden');
 }
 
+// ─── Editor Panel ─────────────────────────────────────────────────────────────
+function togglePanel() {
+  const p = document.getElementById('editorPanel');
+  p.style.display = (p.style.display === 'none' || p.style.display === '')
+    ? 'flex' : 'none';
+}
+
+function updateModel() {
+  const scale = (document.getElementById('scaleSlider').value / 1000).toFixed(3);
+  const px    = (document.getElementById('pxSlider').value / 10).toFixed(1);
+  const py    = (document.getElementById('pySlider').value / 10).toFixed(1);
+  const pz    = (document.getElementById('pzSlider').value / 10).toFixed(1);
+  const rx    = document.getElementById('rxSlider').value;
+  const ry    = document.getElementById('rySlider').value;
+
+  document.getElementById('scaleVal').textContent = scale;
+  document.getElementById('pxVal').textContent    = px;
+  document.getElementById('pyVal').textContent    = py;
+  document.getElementById('pzVal').textContent    = pz;
+  document.getElementById('rxVal').textContent    = rx;
+  document.getElementById('ryVal').textContent    = ry;
+
+  const el = document.getElementById('pyramidEntity');
+  if (el) {
+    el.setAttribute('scale',    `${scale} ${scale} ${scale}`);
+    el.setAttribute('position', `${px} ${py} ${pz}`);
+    el.setAttribute('rotation', `${rx} ${ry} 0`);
+  }
+
+  document.getElementById('codeOutput').textContent =
+    `scale="${scale} ${scale} ${scale}"\nposition="${px} ${py} ${pz}"\nrotation="${rx} ${ry} 0"`;
+}
+
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('codeOutput').textContent)
+    .then(() => alert('✅ Copied to clipboard!'))
+    .catch(() => alert('Copy failed — select the text manually.'));
+}
+
 // ─── UI Helpers ───────────────────────────────────────────────────────────────
 function setHint(text) {
   document.getElementById('hint-text').textContent = text;
@@ -139,23 +131,14 @@ function setHint(text) {
 
 function setBadge(state) {
   const badge = document.getElementById('status-badge');
-  badge.className = 'badge'; // reset
-  switch (state) {
-    case 'scanning':
-      badge.classList.add('scanning');
-      badge.textContent = 'Scanning…';
-      break;
-    case 'ready':
-      badge.classList.add('ready');
-      badge.textContent = 'Surface Found';
-      break;
-    case 'placed':
-      badge.classList.add('placed');
-      badge.textContent = 'Placed ✓';
-      break;
-    case 'offline':
-      badge.classList.add('offline');
-      badge.textContent = 'Offline';
-      break;
-  }
+  badge.className = 'badge';
+  const states = {
+    scanning: ['scanning', 'Scanning…'],
+    found:    ['found',    'Target Locked ✓'],
+    frozen:   ['frozen',   'Frozen ❄'],
+    error:    ['error',    'Camera Error'],
+  };
+  const [cls, label] = states[state] || ['scanning', 'Scanning…'];
+  badge.classList.add(cls);
+  badge.textContent = label;
 }
