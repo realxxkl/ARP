@@ -3,15 +3,14 @@
 
 /* ─── Variables ──────────────────────────────────────────────────────────────── */
 :root {
-  --gold:       #FFD700;
-  --gold-dim:   #B8960C;
-  --sand:       #F5E6C8;
-  --night:      #0A0A14;
-  --glass-bg:   rgba(8, 8, 20, 0.78);
-  --glass-border: rgba(255, 215, 0, 0.25);
-  --radius:     14px;
-  --font-title: 'Cinzel', serif;
-  --font-body:  'Lato', sans-serif;
+  --gold:         #FFD700;
+  --gold-dim:     #a07800;
+  --sand:         #F5E6C8;
+  --glass-bg:     rgba(6, 6, 18, 0.82);
+  --glass-border: rgba(255, 215, 0, 0.22);
+  --radius:       14px;
+  --font-title:   'Cinzel', serif;
+  --font-body:    'Lato', sans-serif;
 }
 
 /* ─── Reset ──────────────────────────────────────────────────────────────────── */
@@ -25,7 +24,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ─── A-Frame scene fills screen ─────────────────────────────────────────────── */
+/* ─── A-Frame fills screen ───────────────────────────────────────────────────── */
 a-scene {
   position: fixed !important;
   top: 0; left: 0;
@@ -41,7 +40,7 @@ a-scene {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px 16px 32px;
+  padding: 20px 16px 36px;
 }
 
 /* ─── Header ─────────────────────────────────────────────────────────────────── */
@@ -49,16 +48,15 @@ a-scene {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  pointer-events: none;
 }
 
 #logo {
   font-family: var(--font-title);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   color: var(--gold);
-  text-shadow: 0 0 18px rgba(255, 215, 0, 0.5);
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.45);
 }
 
 /* ─── Status Badge ───────────────────────────────────────────────────────────── */
@@ -68,7 +66,7 @@ a-scene {
   font-weight: 400;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 5px 12px;
+  padding: 5px 13px;
   border-radius: 20px;
   border: 1px solid transparent;
   backdrop-filter: blur(10px);
@@ -76,33 +74,33 @@ a-scene {
 }
 
 .badge.scanning {
-  background: rgba(100, 100, 160, 0.4);
-  border-color: rgba(150, 150, 255, 0.4);
+  background: rgba(80, 80, 160, 0.35);
+  border-color: rgba(140, 140, 255, 0.35);
   color: #aab4ff;
   animation: pulse-badge 1.8s ease-in-out infinite;
 }
 
-.badge.ready {
-  background: rgba(80, 180, 80, 0.3);
-  border-color: rgba(100, 220, 100, 0.5);
+.badge.found {
+  background: rgba(60, 160, 60, 0.3);
+  border-color: rgba(80, 220, 80, 0.45);
   color: #90ee90;
 }
 
-.badge.placed {
-  background: rgba(180, 140, 0, 0.35);
-  border-color: var(--glass-border);
-  color: var(--gold);
+.badge.frozen {
+  background: rgba(60, 160, 200, 0.3);
+  border-color: rgba(100, 200, 240, 0.45);
+  color: #a0e4ff;
 }
 
-.badge.offline {
-  background: rgba(120, 40, 40, 0.4);
-  border-color: rgba(200, 80, 80, 0.4);
-  color: #ff9999;
+.badge.error {
+  background: rgba(160, 40, 40, 0.35);
+  border-color: rgba(220, 80, 80, 0.4);
+  color: #ffaaaa;
 }
 
 @keyframes pulse-badge {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.55; }
+  50%       { opacity: 0.5; }
 }
 
 /* ─── Hint Box ───────────────────────────────────────────────────────────────── */
@@ -114,30 +112,30 @@ a-scene {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: 40px;
-  padding: 10px 20px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,215,0,0.08);
-  max-width: 320px;
+  padding: 10px 22px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,215,0,0.07);
+  max-width: 300px;
   pointer-events: none;
 }
 
 #hint-icon {
-  font-size: 18px;
+  font-size: 16px;
   color: var(--gold);
-  animation: spin-hint 4s linear infinite;
   flex-shrink: 0;
+  animation: bob 2s ease-in-out infinite;
 }
 
-@keyframes spin-hint {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
 }
 
 #hint-text {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--sand);
-  line-height: 1.4;
+  line-height: 1.45;
   font-weight: 300;
   letter-spacing: 0.02em;
 }
@@ -145,7 +143,7 @@ a-scene {
 /* ─── Info Card ──────────────────────────────────────────────────────────────── */
 #info-card {
   position: fixed;
-  bottom: 110px;
+  bottom: 100px;
   left: 16px;
   right: 16px;
   background: var(--glass-bg);
@@ -154,14 +152,14 @@ a-scene {
   padding: 20px 20px 18px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,215,0,0.1);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,215,0,0.09);
   pointer-events: all;
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 #info-card.hidden {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(14px);
   pointer-events: none;
 }
 
@@ -172,13 +170,11 @@ a-scene {
 
 #info-close {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  color: #ccc;
-  width: 28px;
-  height: 28px;
+  top: 12px; right: 14px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #bbb;
+  width: 28px; height: 28px;
   border-radius: 50%;
   font-size: 13px;
   cursor: pointer;
@@ -187,15 +183,14 @@ a-scene {
   justify-content: center;
   transition: background 0.2s;
 }
-
 #info-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
 #info-title {
   font-family: var(--font-title);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--gold);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   margin-bottom: 10px;
   padding-right: 32px;
   text-shadow: 0 0 12px rgba(255,215,0,0.3);
@@ -211,7 +206,6 @@ a-scene {
 /* ─── Controls ───────────────────────────────────────────────────────────────── */
 #controls {
   display: flex;
-  gap: 10px;
   justify-content: center;
   pointer-events: all;
 }
@@ -219,40 +213,110 @@ a-scene {
 .ctrl-btn {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   font-family: var(--font-title);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  padding: 13px 22px;
+  letter-spacing: 0.1em;
+  padding: 13px 28px;
   border-radius: 40px;
   border: 1px solid var(--gold);
-  background: rgba(255, 215, 0, 0.12);
+  background: rgba(255, 215, 0, 0.1);
   color: var(--gold);
   cursor: pointer;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,215,0,0.15);
-  transition: background 0.2s, transform 0.15s, opacity 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,215,0,0.12);
+  transition: background 0.2s, transform 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 
-.ctrl-btn:not(:disabled):active {
+.ctrl-btn:active {
   transform: scale(0.96);
-  background: rgba(255, 215, 0, 0.22);
+  background: rgba(255, 215, 0, 0.2);
 }
 
-.ctrl-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+/* ─── Editor Panel ───────────────────────────────────────────────────────────── */
+#editorPanel {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(6, 6, 18, 0.96);
+  border-top: 1px solid var(--glass-border);
+  padding: 16px 16px 32px;
+  z-index: 9999;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 65vh;
+  overflow-y: auto;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-.ctrl-btn.secondary {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.7);
+#editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-family: var(--font-title);
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
 }
 
-.ctrl-btn.secondary:not(:disabled):active {
-  background: rgba(255, 255, 255, 0.14);
+#editor-header button {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #ccc;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#editorPanel label {
+  font-size: 11px;
+  color: #aaa;
+  letter-spacing: 0.05em;
+  margin-top: 6px;
+}
+
+#editorPanel input[type=range] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+
+#editorPanel pre {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #ccc;
+  white-space: pre-wrap;
+  margin-top: 8px;
+  font-family: monospace;
+}
+
+#editor-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+#editor-actions button {
+  background: rgba(255,215,0,0.12);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: var(--font-title);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#editor-actions button:active {
+  background: rgba(255,215,0,0.25);
 }
