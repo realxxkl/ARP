@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   sceneEl.addEventListener('arReady', () => {
     setBadge('scanning');
     setHint('Point your camera at the target image');
+    // Auto-open editor so model can be tuned immediately
+    document.getElementById('editorPanel').style.display = 'flex';
     console.log('✅ MindAR ready');
   });
 
