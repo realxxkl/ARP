@@ -44,8 +44,8 @@
       <button onclick="togglePanel()">&#x2715;</button>
     </div>
 
-    <label>Scale: <span id="scaleVal">0.005</span></label>
-    <input type="range" min="1" max="50" value="5" id="scaleSlider" oninput="updateModel()">
+    <label>Scale: <span id="scaleVal">0.01</span></label>
+    <input type="range" min="1" max="200" value="10" id="scaleSlider" oninput="updateModel()">
 
     <label>Position X (left / right): <span id="pxVal">0</span></label>
     <input type="range" min="-20" max="20" value="0" id="pxSlider" oninput="updateModel()">
@@ -53,11 +53,11 @@
     <label>Position Y (up / down): <span id="pyVal">0</span></label>
     <input type="range" min="-20" max="20" value="0" id="pySlider" oninput="updateModel()">
 
-    <label>Position Z (forward / back): <span id="pzVal">-0.1</span></label>
-    <input type="range" min="-20" max="20" value="-1" id="pzSlider" oninput="updateModel()">
+    <label>Position Z (forward / back): <span id="pzVal">0</span></label>
+    <input type="range" min="-20" max="20" value="0" id="pzSlider" oninput="updateModel()">
 
-    <label>Rotation X (tilt): <span id="rxVal">90</span></label>
-    <input type="range" min="-180" max="180" value="90" id="rxSlider" oninput="updateModel()">
+    <label>Rotation X (tilt): <span id="rxVal">0</span></label>
+    <input type="range" min="-180" max="180" value="0" id="rxSlider" oninput="updateModel()">
 
     <label>Rotation Y (spin): <span id="ryVal">0</span></label>
     <input type="range" min="-180" max="180" value="0" id="rySlider" oninput="updateModel()">
@@ -96,9 +96,9 @@
       <a-entity
         id="pyramidEntity"
         gltf-model="#pyramidModel"
-        scale="0.005 0.005 0.005"
-        position="0 0 -0.1"
-        rotation="90 0 0">
+        scale="0.01 0.01 0.01"
+        position="0 0 0"
+        rotation="0 0 0">
       </a-entity>
 
       <!-- Gold hotspot — top -->
